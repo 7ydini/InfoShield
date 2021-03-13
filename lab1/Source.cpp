@@ -6,8 +6,8 @@ using namespace std;
 int main(int argc, char* argv[]) {
 	cout << "Input filename.\n";  
 	char str[1024];  
+	int size = 0;
 	cin >> str;
-
 	ifstream in(str, ios::in | ios::binary);
 	if (!in) { 
 		cout << "Cannot open file.\n";   
@@ -25,16 +25,22 @@ int main(int argc, char* argv[]) {
 	for (i = 0; i < 256; i++) per[i] = i;
 
 	while (in) {
-		in.read(&ch, 1);  
+		in.read(&ch, 1);
+		
 		if (in.fail()) { 
 			if (!in.eof()) { 
 				cout << "Input error\n"; 
 				break; 
 			} else break; 
 		}   
-	//out.put((char)per[ch]);  
-	cout << ch; 
+	//out.put((char)per[ch]);
+		size++;
+		cout << ch;
+		
+
 	}
+	cout << endl;
+	cout << "count byte:" << size << endl;
 
 	in.close(); 
 	//out.close();
