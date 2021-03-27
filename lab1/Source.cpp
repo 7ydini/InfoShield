@@ -1,13 +1,13 @@
 #include <iostream>
 #include <fstream>
-
+#pragma warning (disable : 4703)
 using namespace std;
 
 
 int main(int argc, char* argv[]) {
 	cout << "Input filename.\n";
-	char simvol[128];
-	int count[128];
+	char simvol[256];
+	int count[256];
 	char str[1024];
 	int size = 0;
 	cin >> str;
@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	char ch;  int per[256];  int i;
-	for (i = 0; i < 128; i++) {
+	for (i = 0; i < 256; i++) {
 		count[i] = 0;
 		simvol[i] = '0';
 	}
@@ -34,52 +34,52 @@ int main(int argc, char* argv[]) {
 			}
 			else break;
 		}
-		//ÔÓ‰Ò˜∏Ú ˜‡ÒÚÓÚ˚ Í‡Ê‰Ó„Ó ·‡ÈÚ‡ Ë ‚˚‚Ó‰ ÒÓ‰ÂÊËÏÓ„Ó Ù‡ÈÎ‡
+		//–ü–æ–¥—Å—á–∏—Ç—ã–≤–∞–µ–º —á–∞—Å—Ç–æ—Ç—É –±–∞–π—Ç–æ–≤
 		size++;
 		bool semaphore = false;
 		int k = 1;
-		
+
 		while (!semaphore) {
 			if (ch == '0') {
 				count[0]++;
-				semaphore;
+				semaphore = true;
 			}
-			if (simvol[k] == '0') {
+			else if (simvol[k] == '0') {
 				simvol[k] = ch;
 				semaphore = true;
 			}
-			if (simvol[k] == ch){
+			if (simvol[k] == ch) {
 				count[k]++;
 				semaphore = true;
 			}
+
 			k++;
 		}
 		cout << ch;
 	}
-
-	char* arr = new char[size];
+	char* doc = new char[size];
+	ifstream in3("is.doc", ios::in | ios::binary);
+	in3.read(doc, size);
 	cout << endl;
 	cout << "Count byte: " << size << endl;
-	for (i = 1; count[i] != 0; i++)
-	{
-		cout << "Count '" << simvol[i] << "' : " << count[i] << endl;
-	}
 	if (count[0] != 0) {
 		cout << "Count " << "'0' : " << count[0] << endl;
 	}
-	// ŒÚÍ˚‚‡ÂÏ Ù‡ÈÎ Ò ÍÎ˛˜ÓÏ-ÔÓ‰ÒÚ‡ÌÓ‚ÍÓÈ
-	ifstream in2("key.txt", ios::in | ios::binary);
-	int key[5];
-	in2 >> key[0]; in2 >> key[1]; in2 >> key[2]; in2 >> key[3]; in2 >> key[4];
-	in2.close();
-	// ƒÂÎ‡ÂÏ Ï‡ÒÒË‚ Ò ÒÓ‰ÂÊËÏ˚Ï Ù‡ÈÎ‡ Í‡ÚÌ˚Ï 5
-	in.seekg(0, ios::beg);
+	for (i = 1; count[i] > 0; i++)
+	{
+		cout << "Count '" << simvol[i] << "' : " << count[i] << endl;
+	}
+	for (int i = 0; i < size; ++i) {
+		cout << doc[i];
+	}
+	// –î–µ–ª–∞–µ–º –º–∞—Å—Å–∏–≤ —Å —Å–æ–¥–µ—Ä–∂–∏–º—ã–º —Ñ–∞–π–ª–∞ –∫—Ä–∞—Ç–Ω—ã–º 5
+	in3.seekg(0, ios::beg);
 	int flag = 0;
 	char* new_arr;
 	if (size % 5 != 0) {
 		flag = 1;
 		new_arr = new char[size + (5 - size % 5)];
-		in.read(new_arr, size);
+		in3.read(new_arr, size);
 		for (int i = 0; i < (5 - size % 5); i++) { 
 			new_arr[size + (5 - size % 5) - 1 - i] = 'z'; 
 		}
@@ -88,46 +88,43 @@ int main(int argc, char* argv[]) {
 		}
 		size = size + (5 - size % 5);
 	}
-	else {
-		new_arr = new char[size];
-		in.read(new_arr, size);
-		for (int i = 0; i < size ; i++) {
-			new_arr[size - 1 - i] = 'z';
-		}
-		for (int i = 0; i < size; ++i) {
-			cout << new_arr[i];
-		}
-				
-	}
 	in.close();
-	// ÿËÙÓ‚‡ÌËÂ/–‡Ò¯ËÙÓ‚Í‡ Ë ‚˚‚Ó‰ ÂÁÛÎ¸Ú‡Ú‡
+	// –û—Ç–∫—Ä—ã–≤–∞–µ–º —Ñ–∞–π–ª —Å –∫–ª—é—á–æ–º-–ø–æ–¥—Å—Ç–∞–Ω–æ–≤–∫–æ–π
+	ifstream in2("key.txt", ios::in | ios::binary);
+	int key[5];
+	in2 >> key[0]; in2 >> key[1]; in2 >> key[2]; in2 >> key[3]; in2 >> key[4];
+	in2.close();
+	// –®–∏—Ñ—Ä–æ–≤–∞–Ω–∏–µ/–†–∞—Å—à–∏—Ñ—Ä–æ–≤–∫–∞ –∏ –≤—ã–≤–æ–¥ —Ä–µ–∑—É–ª—å—Ç–∞—Ç–∞
 	int mode;
+	char* scfr_arr = new char[size];
+	int b = 0, c = 0;
 	do {
-		cout << "Enter mode:\n1 >> encrypting\n2 >> decrypting\n3 >> Exit\n";
-		cin >> mode;
-
-		char* scfr_arr = new char[size];
-		int b = 0, c = 0;
+		cout << "\nEnter mode: \n1 >> encrypting\n2 >> decrypting\n3 >> Exit.\n";
+		cin >> mode;		
 		switch (mode) {
 		case 1:
 			for (int i = 0; i < size; i++) {
-				if (!flag) scfr_arr[((size / 5) * (key[i % 5] - 1)) + c] = arr[i];
-
-				else scfr_arr[((size / 5) * (key[i % 5] - 1)) + c] = new_arr[i];
+				if (!flag) {
+					scfr_arr[((size / 5) * (key[i % 5] - 1)) + c] = doc[i];
+				}
+				else {
+					scfr_arr[((size / 5) * (key[i % 5] - 1)) + c] = new_arr[i];
+				}
 				b++;
-				if (b == 5) {
-					b = 0;
-					c++;
+				if (b == 5) { 
+					b = 0; 
+					c++; 
 				}
 			}
 			for (int i = 0; i < size; i++) {
 				cout << scfr_arr[i];
 			}
+			c = 0, b = 0;
 			break;
 		case 2:
 			for (int i = 0; i < size; i++) {
-				if (!flag) {
-					scfr_arr[i] = arr[((size / 5) * (key[i % 5] - 1)) + c];
+				if (!flag) { 
+					scfr_arr[i] = doc[((size / 5) * (key[i % 5] - 1)) + c]; 
 				}
 				else {
 					scfr_arr[i] = new_arr[((size / 5) * (key[i % 5] - 1)) + c];
@@ -138,6 +135,7 @@ int main(int argc, char* argv[]) {
 			for (int i = 0; i < size; i++) {
 				cout << scfr_arr[i];
 			}
+			b = 0;
 			break;
 		case(3):
 			cout << "BB" << endl;
