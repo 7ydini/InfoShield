@@ -98,6 +98,16 @@ int main(int argc, char* argv[]) {
 	int mode;
 	char* scfr_arr = new char[size];
 	int b = 0, c = 0;
+	ofstream enc("encrypt.txt", ios::out);
+	if (!enc) {
+		cout << "Cannot open file.\n";
+		return 1;
+	}
+	ofstream dec("decrypt.txt", ios::out);
+	if (!dec) {
+		cout << "Cannot open file.\n";
+		return 1;
+	}
 	do {
 		cout << "\nEnter mode: \n1 >> encrypting\n2 >> decrypting\n3 >> Exit.\n";
 		cin >> mode;		
@@ -119,8 +129,10 @@ int main(int argc, char* argv[]) {
 			for (int i = 0; i < size; i++) {
 				cout << scfr_arr[i];
 			}
+			enc.write(scfr_arr, size);
 			c = 0, b = 0;
 			break;
+			
 		case 2:
 			for (int i = 0; i < size; i++) {
 				if (!flag) { 
@@ -135,6 +147,7 @@ int main(int argc, char* argv[]) {
 			for (int i = 0; i < size; i++) {
 				cout << scfr_arr[i];
 			}
+			dec.write(scfr_arr, size);
 			b = 0;
 			break;
 		case(3):
