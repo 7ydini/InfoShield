@@ -26,7 +26,8 @@ public class Main {
      while(!simpleNum(d)) {
          d = (int) (1 + Math.random() * 100);
      }
-        /*for(int i = 2; i <= m; i++) {
+       /* d = m - 1;
+        for(int i = 2; i <= m; i++) {
            if (m % i == 0 && d % i == 0) {
                 d--;
                i = 1;
@@ -36,7 +37,7 @@ public class Main {
      System.out.println("D = " + d);
      //Ищем e;
         while(!((e * d)%(m) == 1)){
-            e = (int) (Math.random() * 10000);
+            e = (int) (Math.random() * 1000);
         }
         System.out.println("E = " + e);
         System.out.println("E = " + e + "; and N =" + n + "; open key!");
@@ -90,7 +91,7 @@ public class Main {
         for (char ch : messArr) {
             for (int j = 0; j < word.length; j++) {
                 if (word[j] == ch) {
-                    index = (j + 1) ^ e % n;
+                    index = (j) ^ e % n;
                     encMess = encMess + index+ " ";
                 }
             }
@@ -107,6 +108,7 @@ public class Main {
 
     }
     public static void Decrypt( int d, int n){
+
         char[] word = new char[] {
                 'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И',
                 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т',
@@ -120,10 +122,18 @@ public class Main {
             File dec = new File("src/decrypt.txt");
             FileWriter decWrite = new FileWriter(dec);
             String message = "";
-            String encMess = String.valueOf(encRead.read());
-            int[] messageNumb = Arrays.stream(encMess.split(" ")).mapToInt(Integer::parseInt).toArray();
-            for (int j : messageNumb) {
-                message = message + String.valueOf(word[j ^ d % n]) + " ";
+            String decrypt = "";
+            int index = 0;
+            while (encRead.ready()) {
+                String encMess = String.valueOf(encRead.read());
+                message = message + encMess + " ";
+            }
+            System.out.println(message);
+            int[] messageNumb = Arrays.stream(message.split(" ")).mapToInt(Integer::parseInt).toArray();
+            for (int i : messageNumb) {
+                System.out.println(i);
+                index = (i ^ d) % n;
+                decrypt = decrypt + String.valueOf(word[index]) + " ";
             }
             decWrite.write(message);
             decWrite.close();
