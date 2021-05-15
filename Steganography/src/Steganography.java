@@ -28,8 +28,6 @@ public class Steganography{
         encode("src/2.bmp", "src/Encode.txt");
         decode("src/2encoded.bmp");
     }
-
-
     // Encode
 
     private static void encode(String imagePath, String textPath) {
@@ -37,9 +35,9 @@ public class Steganography{
         BufferedImage encodeImage = coppyImage(image);
         String text = getText(textPath);
 
-        byte imageInBytes[] = getImageBytes(encodeImage);
-        byte textInBytes[] = text.getBytes();
-        byte textLengthInBytes[] = getLengthBytes(textInBytes.length);
+        byte[] imageInBytes = getImageBytes(encodeImage);
+        byte[] textInBytes = text.getBytes();
+        byte[] textLengthInBytes = getLengthBytes(textInBytes.length);
         try {
             encodeImage(imageInBytes, textLengthInBytes,  0);
             encodeImage(imageInBytes, textInBytes, bytesForTextLengthData*bitsInByte);
@@ -58,16 +56,15 @@ public class Steganography{
         String finalFileName = fileName + "encoded.bmp";
         System.out.println("Сообщение зашифрованно в .bmp: " + finalFileName);
         saveImageToPath(encodeImage, new File(finalFileName),"bmp");
-        return;
     }
 
     private static byte[] encodeImage(byte[] image, byte[] addition, int offset) {
         if (addition.length + offset > image.length) {
-            throw new IllegalArgumentException("Image file is not long enough to store provided text");
+            throw new IllegalArgumentException("Нет возможности закодировать из-за длинны img");
         }
         for (int i=0; i<addition.length; i++) {
             int additionByte = addition[i];
-            for (int bit=bitsInByte-1; bit>=0; --bit, offset++) {
+            for (int bit=bitsInByte-1; bit >= 0; --bit, offset++) {
                 int b = (additionByte >>> bit) & 0x1;
                 image[offset] = (byte)((image[offset] & 0xFE) | b);
             }
@@ -83,14 +80,14 @@ public class Steganography{
         try {
             BufferedImage imageFromPath = getImage(imagePath);
             BufferedImage imageInUserSpace = coppyImage(imageFromPath);
-            byte imageInBytes[] = getImageBytes(imageInUserSpace);
+            byte[] imageInBytes = getImageBytes(imageInUserSpace);
             decodedByteText = decodeImage(imageInBytes);
             String hiddenText = new String(decodedByteText);
             saveTextToPath(hiddenText, new File("src/Decode.txt"));
-            System.out.println("Successfully extracted text to: " + "src/Decode.txt");
+            System.out.println("Сообщение расшифрованно в Decode.txt");
             return hiddenText;
         } catch (Exception exception) {
-            System.out.println("No hidden message. Error: " + exception);
+            System.out.println("Не удалось зашифровать img: " + exception);
             return "";
         }
     }
@@ -117,7 +114,7 @@ public class Steganography{
             file.delete();
             ImageIO.write(image, extension, file);
         } catch (Exception exception) {
-            System.out.println("Image file could not be saved. Error: " + exception);
+            System.out.println("Фотография не может быть сохранена: " + exception);
         }
     }
 
@@ -131,7 +128,7 @@ public class Steganography{
             bufferedWriter.write(text);
             bufferedWriter.close();
         } catch (Exception exception) {
-            System.out.println("Couldn't write text to file: " + exception);
+            System.out.println("Запись в файл не удалась: " + exception);
         }
     }
 
@@ -153,7 +150,7 @@ public class Steganography{
             text = scanner.useDelimiter("\\A").next();
             scanner.close();
         } catch (Exception exception) {
-            System.out.println("Couldn't read text from file. Error: " + exception);
+            System.out.println(exception);
         }
         return text;
     }
