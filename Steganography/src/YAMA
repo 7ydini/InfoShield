@@ -1,0 +1,282 @@
+import java.io.*;
+import java.util.Scanner;
+import java.nio.ByteBuffer;
+import javax.imageio.ImageIO;
+
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
+import java.awt.image.DataBufferByte;
+
+public class Steganography{
+
+    private static final int bytesForTextLengthData = 4;
+    private static final int bitsInByte = 8;
+
+    public static void main(String[] args) {
+        try {
+            File encode = new File("src/Encode.txt");
+            FileWriter writer = new FileWriter(encode);
+            Scanner scanner = new Scanner(System.in);
+            //System.out.print("Введите сообщение для коддировки >> ");
+            //writer.write(scanner.nextLine());
+            writer.close();
+            scanner.close();
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+        //encode("src/2.bmp", "src/Encode.txt");
+        decode("src/2.bmp");
+    }
+    // Encode
+
+    private static void encode(String imagePath, String textPath) {
+        BufferedImage image = getImage(imagePath);
+        BufferedImage encodeImage = coppyImage(image);
+        String text = getText(textPath);
+
+        byte[] imageInBytes = getImageBytes(encodeImage);
+        byte[] textInBytes = text.getBytes();
+        byte[] textLengthInBytes = getLengthBytes(textInBytes.length);
+        try {
+            encodeImage(imageInBytes, textLengthInBytes,  0);
+            encodeImage(imageInBytes, textInBytes, bytesForTextLengthData*bitsInByte);
+        }
+        catch (Exception exception) {
+            System.out.println(exception);
+            return;
+        }
+
+        String fileName = imagePath;
+        int position = fileName.lastIndexOf(".");
+        if (position > 0) {
+            fileName = fileName.substring(0, position);
+        }
+
+        String finalFileName = fileName + "encoded.bmp";
+        System.out.println("Сообщение зашифрованно в .bmp: " + finalFileName);
+        saveImageToPath(encodeImage, new File(finalFileName),"bmp");
+    }
+
+    private static byte[] encodeImage(byte[] image, byte[] addition, int offset) {
+        if (addition.length + offset > image.length) {
+            //throw new IllegalArgumentException("Нет возможности закодировать из-за длинны");
+        }
+        for (int i=0; i<addition.length; i++) {
+            int additionByte = addition[i];
+            for (int bit=bitsInByte-1; bit >= 0; --bit, offset++) {
+                int b = (additionByte >>> bit) & 0x1;
+                image[offset] = (byte)((image[offset] & 0xFE) | b);
+            }
+        }
+        return image;
+    }
+
+
+    // Decode
+
+    private static String decode(String imagePath) {
+        byte[] decodedByteText;
+        try {
+            BufferedImage imageFromPath = getImage(imagePath);
+            BufferedImage imageInUserSpace = coppyImage(imageFromPath);
+            byte[] imageInBytes = getImageBytes(imageInUserSpace);
+            extractText(imageInUserSpace, imageInBytes.length);
+            decodedByteText = decodeImage(imageInBytes);
+            String hiddenText = new String(decodedByteText);
+            saveTextToPath(hiddenText, new File("src/Decode.txt"));
+            System.out.println("Сообщение расшифрованно в Decode.txt");
+            return hiddenText;
+        } catch (Exception exception) {
+            System.out.println("Не удалось зашифровать img: " + exception);
+            return "";
+        }
+    }
+
+    private static byte[] decodeImage(byte[] image) {
+        int length = 0;
+        int offset  = bytesForTextLengthData*bitsInByte;
+
+        for (int i=0; i<offset; i++) {
+            length = (length << 1) | (image[i] & 0xFF);
+        }
+
+        byte[] result = new byte[length];
+
+        for (int b=0; b<result.length; b++ ) {
+            for (int i=0; i<bitsInByte; i++, offset++) {
+                result[b] = (byte)((result[b] << 1) | (image[offset] & 0xFF));
+            }
+        }
+        return result;
+    }
+    private static void decodeImg(String path){
+    	
+    	BufferedImage imageFromPath = getImage(path);
+        BufferedImage imageInUserSpace = coppyImage(imageFromPath);
+        int countSymbol = getImageBytes(imageInUserSpace).length; //считали количество  символов
+        byte[] message = new byte[countSymbol];
+        int index = 0;
+        boolean st = false;
+        for (int i = 4; i < imageInUserSpace.getWidth(); i++) {
+            for (int j = 0; j < imageInUserSpace.getHeight(); j++) {
+                //Color pixelColor = imageInUserSpace.getRGB(i, j);
+            	int pixColor = imageInUserSpace.getRGB(i, j);
+                if (index == message.length) {
+                    st = true;
+                    break;
+                }
+                int  red   = (pixColor & 0x00ff0000) >> 16;
+                int  green = (pixColor & 0x0000ff00) >> 8;
+                int  blue  =  pixColor & 0x000000ff;
+                byte[] colorArray = getLengthBytes(red);
+                byte[] messageArray = getLengthBytes(red);
+                messageArray[0] = colorArray[0];
+                messageArray[1] = colorArray[1];
+
+                colorArray = getLengthBytes(green);
+                messageArray[2] = colorArray[0];
+                messageArray[3] = colorArray[1];
+                messageArray[4] = colorArray[2];
+
+                colorArray = getLengthBytes(blue);
+                messageArray[5] = colorArray[0];
+                messageArray[6] = colorArray[1];
+                messageArray[7] = colorArray[2];
+                byte num = 0;
+                for (int k = 0; k < messageArray.length; k++)
+                    if (messageArray[k] != 0){
+                        num += (byte)Math.pow(2, k);
+                    }
+                message[index] = num;
+                index++;
+            }
+            if (st) {
+                break;
+            }
+        }
+        //String strMessage = Encoding.GetEncoding(1251).GetString(message);
+    	
+    }
+    public static void extractText(BufferedImage image, int length) {
+    	FileWriter fileWriter = null;
+		try {
+			fileWriter = new FileWriter(new File("src/Decode.txt"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+        
+		System.out.print("Extracting: ");
+		int bitMask = 0x00000001;	// define the mask bit used to get the digit
+		int x = 0;					// define the starting pixel x
+		int y = 0;					// define the starting pixel y
+		int flag;
+		char[] c = new char[length] ;	// define a character array to store the secret information
+		for(int i = 0; i < length; i++) {	
+			int bit = 0;
+			
+			// 8 digits form a character
+			for(int j = 0; j < 8; j++) {				
+				if(x < image.getWidth()) {
+					flag = image.getRGB(x, y) & bitMask;	// get the last digit of the pixel
+					x++;
+				}
+				else {
+					x = 0;
+					y++;
+					flag = image.getRGB(x, y) & bitMask;	// get the last digit of the pixel
+				}
+				
+				// store the extracted digits into an integer as a ASCII number
+				if(flag == 1) {					
+					bit = bit >> 1;	
+					bit = bit | 0x80;
+				} 
+				else {					
+					bit = bit >> 1;
+				}				
+			}
+			c[i] = (char) bit;	// represent the ASCII number by characters
+			try {
+				bufferedWriter.write(c[i]);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			//System.out.print(c[i]);
+		}
+		try {
+			bufferedWriter.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+    private static void saveImageToPath(BufferedImage image, File file, String extension) {
+        try {
+            file.delete();
+            ImageIO.write(image, extension, file);
+        } catch (Exception exception) {
+            System.out.println("Фотография не может быть сохранена: " + exception);
+        }
+    }
+
+    private static void saveTextToPath(String text, File file) {
+        try {
+            if (!file.exists()) {
+                file.createNewFile( );
+            }
+            FileWriter fileWriter = new FileWriter(file.getAbsoluteFile());
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.write(text);
+            bufferedWriter.close();
+        } catch (Exception exception) {
+            System.out.println("Запись в файл не удалась: " + exception);
+        }
+    }
+
+    private static BufferedImage getImage(String path) {
+        BufferedImage image	= null;
+        File file = new File(path);
+        try {
+            image = ImageIO.read(file);
+        } catch (Exception exception) {
+            System.out.println(exception);
+        }
+        return image;
+    }
+
+    private static String getText(String textFile) {
+        String text = "";
+        try {
+            Scanner scanner = new Scanner( new File(textFile) );
+            text = scanner.useDelimiter("\\A").next();
+            scanner.close();
+        } catch (Exception exception) {
+            System.out.println(exception);
+        }
+        return text;
+    }
+
+
+    private static BufferedImage coppyImage(BufferedImage image) {
+        BufferedImage imageInUserSpace  = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+        Graphics2D graphics = imageInUserSpace.createGraphics();
+        graphics.drawRenderedImage(image, null);
+        graphics.dispose();
+        return imageInUserSpace;
+    }
+
+    private static byte[] getImageBytes(BufferedImage image) {
+        WritableRaster raster = image.getRaster();
+        DataBufferByte buffer = (DataBufferByte)raster.getDataBuffer();
+        return buffer.getData();
+    }
+
+    private static byte[] getLengthBytes(int integer) {
+        return ByteBuffer.allocate(bytesForTextLengthData).putInt(integer).array();
+    }
+}
