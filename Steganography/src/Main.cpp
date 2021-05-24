@@ -1,6 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
-#include<vector>
+#include <vector>
 #include <stdint.h>
 #include <windows.h>
 
@@ -49,19 +49,17 @@ int main() {
 			FILE* bmp_file = fopen((file_name + ".bmp").c_str(), "rb"); // открытие bmp файла для чтения
 			fread(&BMP_File_header, sizeof(BMP_File_header), 1, bmp_file); // Чтение | Без этого
 			fread(&BMP_Info_header, sizeof(BMP_Info_header), 1, bmp_file); // заголовков файла | не работает
-			vector<uint8_t> decrypted_text; // текст из дешифрованного файла
+			//vector<uint8_t> decrypted_text; // текст из дешифрованного файла
+			FILE* text = fopen("decode.txt", "wb");
 			while (true) {
 				fread(&pixel_color, sizeof(pixel_color), 1, bmp_file); // считывание цвета пикселя
 				uint8_t decr_inf_byte = unhide_byte_from_pixel(pixel_color); // дешифрованный байт информации
 				if (decr_inf_byte == 0xFF) break; // конец файла
-				else decrypted_text.insert(decrypted_text.end(), decr_inf_byte); // сохранение байта информации
-			}
-			for (auto const& value : decrypted_text)
-			{
-				cout << value;
+				fwrite(&decr_inf_byte, 1, 1, text);
 			}
 			cout << endl;
 			fclose(bmp_file); // закрытие bmp файла
+			fclose(text); // закрытие bmp файла
 		}
 		else if (enc_dec_flag == 'e') {
 			cout << "BMP file name: ";
